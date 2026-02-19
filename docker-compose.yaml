@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  # 1. Database Service
+  dockerComposedb:
+    image: postgres:latest
+    container_name: dockerCompose-database
+    restart: always
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASS}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. pgAdmin Service
+  dockeradmin:
+    image: dpage/pgadmin4
+    container_name: dockerCompose-admin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "${PGADMIN_PORT:-8070}:80"
+    depends_on:
+      - dockerComposedb
+
+volumes:
+  postgres_data:
