@@ -1,23 +1,27 @@
-version: "3.9"
-
 services:
-  # 1. Database Service
+# Database Service
   dockerComposedb:
-    image: postgres:latest
+    image: postgres:15
     container_name: dockerCompose-database
     restart: always
     environment:
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASS}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
     ports:
       - "${DATABASE_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME}"]
+      interval: 5s
+      retries: 10
+    networks:
+      - appnet
 
-  # 2. pgAdmin Service
+# PgAdmin4 Service
   dockeradmin:
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4:latest
     container_name: dockerCompose-admin
     restart: always
     environment:
@@ -26,7 +30,34 @@ services:
     ports:
       - "${PGADMIN_PORT:-8070}:80"
     depends_on:
-      - dockerComposedb
+      dockerComposedb:
+        condition: service_healthy
+    networks:
+      - appnet
+
+#Strapi Service 
+  dockerapp:
+    image: prawee/strapi
+    container_name: dockerCompose-app
+    restart: always
+    depends_on:
+      dockerComposedb:
+        condition: service_healthy
+    environment:
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: dockerComposedb
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "${APP_PORT}:1337"
+    networks:
+      - appnet
+
 
 volumes:
   postgres_data:
+
+networks:
+  appnet:
