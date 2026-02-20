@@ -26,3 +26,13 @@ Member 5: Arisa Chinsan
     StudentID: 6702041511292 
     Email: s6702041511292@email.kmutnb.ac.th
 ```
+
+## Environment 
+```sh
+cp .env.example .env
+```
+
+## Running Service 
+```sh
+docker compose -f docker-compose.yaml up -d
+```
